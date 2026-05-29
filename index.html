@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>СТРИЖ — Задачи</title>
+
+  <!-- Telegram Mini App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- Firebase compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+  <!-- Google Fonts: Roboto с кириллицей -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Tabler Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --sg:#11C386;--sgd:#0a8f61;--sgl:#e8faf4;
+      --bk:#1A1A1A;--rd:#e74c3c;--am:#f59e0b;
+      --fs-base:14px;--fs-sm:12px;--fs-xs:10px;--fs-card:13px;
+      --pad:14px;--gap:8px
+    }
+    @media(max-width:420px){
+      :root{--fs-base:13px;--fs-sm:11px;--fs-xs:9px;--fs-card:12px;--pad:11px;--gap:6px}
+    }
+    @media(min-width:700px){
+      :root{--fs-base:15px;--fs-sm:13px;--fs-xs:11px;--fs-card:14px;--pad:18px;--gap:10px}
+    }
+
+    html,body{height:100%;background:#fff}
+    body{font-family:'Roboto',Arial,sans-serif;font-size:var(--fs-base);background:#fff}
+
+    /* ШАПКА */
+    .hd{background:#fff;border-bottom:2.5px solid var(--sg);padding:10px var(--pad);
+      display:flex;align-items:center;justify-content:center;min-height:52px;
+      position:sticky;top:0;z-index:10}
+    .logo-svg{height:clamp(28px,5vw,40px);width:auto}
+
+    /* СТАТУС СОЕДИНЕНИЯ */
+    .conn-bar{font-size:var(--fs-xs);text-align:center;padding:4px;
+      background:#fef3c7;color:#92400e;display:none}
+    .conn-bar.show{display:block}
+
+    /* ТАБЫ */
+    .tabs{display:flex;border-bottom:.5px solid #e8e8e8;
+      position:sticky;top:52px;z-index:9;background:#fff}
+    .tab{flex:1;padding:clamp(8px,2vw,12px) 0;font-size:var(--fs-sm);
+      font-weight:500;text-align:center;cursor:pointer;color:#888;
+      border-bottom:2px solid transparent;transition:all .15s;
+      font-family:'Roboto',Arial,sans-serif}
+    .tab.on{color:var(--sg);border-bottom-color:var(--sg)}
+    .tc{display:inline-flex;align-items:center;justify-content:center;
+      width:16px;height:16px;border-radius:50%;font-size:9px;
+      margin-left:4px;font-weight:500}
+    .tw .tc{background:#fef3c7;color:#92400e}
+    .td .tc{background:#e8faf4;color:var(--sgd)}
+
+    /* ТУЛБАР */
+    .toolbar{padding:9px var(--pad) 8px;display:flex;gap:6px;
+      background:#fff;border-bottom:.5px solid #f0f0f0;
+      align-items:center;flex-wrap:wrap}
+    .flt{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+    .fb{font-size:var(--fs-xs);padding:4px 8px;border-radius:20px;
+      cursor:pointer;border:.5px solid #e0e0e0;background:#fff;
+      color:#666;transition:all .15s;white-space:nowrap;
+      font-family:'Roboto',Arial,sans-serif}
+    .fb.on{background:var(--sg);color:#fff;border-color:var(--sg)}
+    .ab{display:flex;align-items:center;gap:4px;font-size:var(--fs-xs);
+      font-weight:500;padding:6px 11px;background:var(--bk);color:#fff;
+      border:none;border-radius:7px;cursor:pointer;white-space:nowrap;
+      font-family:'Roboto',Arial,sans-serif;transition:background .15s}
+    .ab:hover{background:var(--sg)}
+
+    /* INFO BAR */
+    .info-bar{padding:7px var(--pad) 0;display:flex;gap:5px;flex-wrap:wrap}
+    .st{font-size:var(--fs-xs);padding:3px 8px;border-radius:20px;
+      border:.5px solid #e0e0e0;color:#555;background:#fafafa;
+      white-space:nowrap;font-family:'Roboto',Arial,sans-serif}
+    .st b{color:#111}
+    .st-ov{border-color:#fca5a5;color:#c0392b;background:#fff5f5}
+    .st-ov b{color:#c0392b}
+
+    /* СПИСОК */
+    .list{padding:10px var(--pad) 80px;display:flex;
+      flex-direction:column;gap:var(--gap);background:#fff;min-height:200px}
+    .empty{text-align:center;color:#aaa;font-size:var(--fs-sm);
+      padding:40px 0;font-family:'Roboto',Arial,sans-serif}
+    .loading{text-align:center;color:#aaa;font-size:var(--fs-sm);
+      padding:40px 0;font-family:'Roboto',Arial,sans-serif}
+
+    /* КАРТОЧКА */
+    .card{background:#fff;border-radius:10px;border:.5px solid #e8e8e8;
+      padding:11px 12px;cursor:pointer;transition:border-color .15s;position:relative}
+    .card:hover{border-color:var(--sg)}
+    .card:active{border-color:var(--sg);background:#fafffe}
+    .ct{display:flex;align-items:flex-start;justify-content:space-between;
+      gap:8px;margin-bottom:7px}
+    .ctitle{font-size:var(--fs-card);font-weight:500;color:#111;
+      line-height:1.4;flex:1;font-family:'Roboto',Arial,sans-serif}
+    .prdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px}
+    .pr-high{background:var(--rd)}.pr-med{background:var(--am)}.pr-low{background:var(--sg)}
+    .cm{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .av{width:clamp(20px,4vw,24px);height:clamp(20px,4vw,24px);border-radius:50%;
+      font-size:8px;font-weight:600;display:flex;align-items:center;
+      justify-content:center;color:#fff;flex-shrink:0;
+      font-family:'Roboto',Arial,sans-serif}
+    .avname{font-size:var(--fs-xs);color:#666;flex:1;
+      font-family:'Roboto',Arial,sans-serif}
+    .due{font-size:var(--fs-xs);display:flex;align-items:center;
+      gap:3px;color:#999;font-family:'Roboto',Arial,sans-serif}
+    .due-ov{color:var(--rd)!important;font-weight:500}
+    .due-sn{color:var(--am)!important;font-weight:500}
+    .cnote{font-size:var(--fs-xs);color:#999;margin-top:6px;
+      padding-top:6px;border-top:.5px solid #f0f0f0;line-height:1.5;
+      font-family:'Roboto',Arial,sans-serif}
+    .done-card .ctitle{text-decoration:line-through;color:#aaa}
+
+    /* МОДАЛЬНОЕ ОКНО */
+    .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+      z-index:200;align-items:flex-end;justify-content:center}
+    .ov.open{display:flex}
+    .md{background:#fff;border-radius:16px 16px 0 0;
+      padding:clamp(16px,4vw,22px) clamp(14px,4vw,20px) 32px;
+      width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+    .mdh{width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 16px}
+    .mhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .mtitle{font-size:clamp(14px,3vw,16px);font-weight:600;color:#111;
+      font-family:'Roboto',Arial,sans-serif}
+    .xb{background:none;border:none;cursor:pointer;color:#aaa;
+      font-size:20px;line-height:1;padding:4px}
+    .fg{margin-bottom:10px}
+    .fl{font-size:var(--fs-xs);color:#888;margin-bottom:4px;display:block;
+      font-weight:500;font-family:'Roboto',Arial,sans-serif}
+    .fi{width:100%;padding:9px 10px;border-radius:8px;
+      border:.5px solid #e0e0e0;background:#fafafa;color:#111;
+      font-size:var(--fs-sm);font-family:'Roboto',Arial,sans-serif;
+      -webkit-appearance:none;outline:none}
+    .fi:focus{border-color:var(--sg);background:#fff}
+    .fr2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .sb{width:100%;padding:12px;background:var(--sg);color:#fff;
+      border:none;border-radius:9px;font-size:var(--fs-sm);font-weight:600;
+      cursor:pointer;margin-top:4px;font-family:'Roboto',Arial,sans-serif;
+      transition:background .15s}
+    .sb:hover{background:var(--sgd)}
+    .db{width:100%;padding:10px;background:#fff;color:var(--rd);
+      border:.5px solid var(--rd);border-radius:9px;font-size:var(--fs-xs);
+      cursor:pointer;margin-top:8px;font-family:'Roboto',Arial,sans-serif}
+    .fi.err{border-color:var(--rd)!important;background:#fff5f5}
+
+    /* ТОСТ */
+    .toast{position:fixed;bottom:20px;left:50%;
+      transform:translateX(-50%) translateY(70px);
+      background:#111;color:#fff;font-size:11px;padding:8px 18px;
+      border-radius:20px;transition:transform .3s;z-index:300;
+      pointer-events:none;white-space:nowrap;
+      font-family:'Roboto',Arial,sans-serif}
+    .toast.on{transform:translateX(-50%) translateY(0)}
+  </style>
+</head>
+<body>
+
+<div id="connBar" class="conn-bar">⚠️ Нет соединения — работаем офлайн</div>
+
+<div class="hd">
+  <svg class="logo-svg" viewBox="0 0 1921 455" xmlns="http://www.w3.org/2000/svg" aria-label="СТРИЖ">
+    <path fill="#000" fill-rule="evenodd" d="M 1834 372 L 1834 376 L 1844 379 L 1844 446 L 1834 449 L 1834 453 L 1854 453 L 1856 451 L 1857 448 L 1860 445 L 1861 442 L 1899 386 L 1900 387 L 1900 446 L 1889 449 L 1889 453 L 1920 453 L 1920 449 L 1910 446 L 1910 379 L 1920 376 L 1920 372 L 1900 372 L 1855 439 L 1854 438 L 1854 379 L 1865 376 L 1865 372 Z M 1743 372 L 1744 376 L 1754 379 L 1754 446 L 1744 449 L 1743 453 L 1791 453 L 1798 451 L 1803 448 L 1809 442 L 1812 435 L 1812 424 L 1810 419 L 1805 413 L 1798 409 L 1803 405 L 1808 396 L 1808 386 L 1805 380 L 1799 375 L 1791 372 Z M 1764 414 L 1765 413 L 1787 413 L 1794 416 L 1801 424 L 1802 431 L 1799 440 L 1795 444 L 1789 447 L 1765 447 L 1764 446 Z M 1764 379 L 1765 378 L 1787 378 L 1789 379 L 1797 387 L 1798 393 L 1796 400 L 1791 405 L 1785 407 L 1765 407 L 1764 406 Z M 1637 372 L 1637 376 L 1648 379 L 1648 446 L 1637 449 L 1637 453 L 1657 453 L 1702 386 L 1703 387 L 1703 446 L 1693 449 L 1693 453 L 1724 453 L 1723 449 L 1713 446 L 1713 379 L 1723 376 L 1724 372 L 1704 372 L 1701 375 L 1700 378 L 1659 438 L 1658 437 L 1658 379 L 1668 376 L 1668 372 Z M 1498 372 L 1498 376 L 1506 378 L 1532 404 L 1516 426 L 1515 429 L 1506 440 L 1505 443 L 1501 447 L 1492 449 L 1492 453 L 1510 453 L 1539 411 L 1551 421 L 1551 446 L 1541 449 L 1541 453 L 1570 453 L 1570 449 L 1561 446 L 1561 421 L 1571 411 L 1574 413 L 1575 416 L 1601 453 L 1620 453 L 1620 449 L 1610 447 L 1607 444 L 1606 441 L 1579 404 L 1605 378 L 1614 376 L 1614 372 L 1586 372 L 1586 376 L 1591 377 L 1594 379 L 1562 411 L 1561 410 L 1561 379 L 1570 376 L 1570 372 L 1541 372 L 1541 376 L 1551 379 L 1551 411 L 1550 412 L 1517 379 L 1520 377 L 1525 376 L 1525 372 Z M 1356 372 L 1357 376 L 1367 379 L 1367 446 L 1357 449 L 1356 453 L 1376 453 L 1379 450 L 1384 441 L 1421 387 L 1422 388 L 1422 446 L 1412 449 L 1412 453 L 1443 453 L 1443 449 L 1432 446 L 1432 379 L 1443 376 L 1443 372 L 1423 372 L 1384 429 L 1383 432 L 1378 438 L 1377 437 L 1377 379 L 1387 376 L 1387 372 Z M 1215 372 L 1215 376 L 1225 379 L 1225 446 L 1215 449 L 1215 453 L 1235 453 L 1279 387 L 1280 388 L 1280 446 L 1270 449 L 1270 453 L 1301 453 L 1301 449 L 1290 446 L 1290 379 L 1301 376 L 1301 372 L 1281 372 L 1279 374 L 1278 377 L 1275 380 L 1236 439 L 1235 438 L 1235 379 L 1245 376 L 1245 372 Z M 1022 372 L 1023 376 L 1033 379 L 1033 446 L 1023 449 L 1022 453 L 1055 453 L 1054 449 L 1043 446 L 1043 422 L 1044 421 L 1070 420 L 1083 413 L 1087 408 L 1090 401 L 1089 387 L 1083 378 L 1076 374 L 1073 374 L 1069 372 Z M 1043 379 L 1044 378 L 1063 378 L 1071 381 L 1077 387 L 1080 396 L 1077 406 L 1069 413 L 1060 415 L 1044 415 L 1043 414 Z M 935 372 L 936 395 L 941 395 L 942 386 L 945 378 L 964 378 L 965 379 L 965 446 L 954 449 L 954 453 L 985 453 L 985 449 L 975 446 L 975 379 L 976 378 L 994 378 L 996 382 L 998 395 L 1003 395 L 1004 372 Z M 1138 372 L 1125 379 L 1119 385 L 1113 395 L 1110 406 L 1110 421 L 1112 430 L 1119 442 L 1126 448 L 1141 454 L 1161 454 L 1175 448 L 1184 440 L 1188 434 L 1192 424 L 1192 419 L 1193 418 L 1193 404 L 1191 395 L 1182 381 L 1171 374 L 1162 371 L 1142 371 Z M 1147 377 L 1159 378 L 1168 382 L 1177 392 L 1181 400 L 1182 405 L 1182 420 L 1177 434 L 1167 444 L 1155 448 L 1144 447 L 1134 442 L 1128 436 L 1123 428 L 1121 420 L 1121 405 L 1123 397 L 1126 391 L 1134 382 L 1142 378 Z M 874 372 L 860 379 L 853 386 L 847 396 L 844 407 L 844 421 L 848 434 L 851 439 L 859 447 L 872 453 L 876 454 L 897 454 L 907 451 L 917 444 L 915 424 L 910 424 L 909 434 L 907 438 L 907 441 L 905 443 L 891 448 L 879 447 L 866 440 L 859 431 L 855 418 L 855 407 L 858 395 L 861 390 L 869 382 L 875 379 L 883 377 L 892 377 L 893 378 L 898 378 L 905 381 L 907 383 L 909 396 L 914 396 L 916 377 L 913 375 L 900 371 L 878 371 Z M 1240 347 L 1241 356 L 1244 359 L 1253 362 L 1270 361 L 1276 358 L 1279 354 L 1279 347 L 1275 345 L 1268 346 L 1270 354 L 1267 357 L 1263 358 L 1252 357 L 1249 354 L 1250 346 L 1244 345 Z M 1510 5 L 1510 24 L 1538 36 L 1617 111 L 1520 245 L 1515 248 L 1488 257 L 1488 277 L 1563 277 L 1653 146 L 1678 169 L 1678 245 L 1674 248 L 1652 257 L 1652 277 L 1756 277 L 1756 257 L 1749 255 L 1747 253 L 1736 249 L 1730 245 L 1730 169 L 1754 146 L 1760 153 L 1845 277 L 1920 277 L 1920 258 L 1901 250 L 1893 248 L 1888 245 L 1791 112 L 1803 99 L 1871 35 L 1898 24 L 1898 5 L 1799 5 L 1799 24 L 1819 32 L 1826 36 L 1731 130 L 1730 129 L 1730 36 L 1741 30 L 1756 24 L 1756 5 L 1652 5 L 1652 24 L 1678 36 L 1678 129 L 1677 130 L 1582 36 L 1584 34 L 1609 24 L 1609 5 Z M 1140 5 L 1140 24 L 1170 36 L 1170 245 L 1163 249 L 1140 257 L 1140 277 L 1219 277 L 1244 236 L 1257 217 L 1259 212 L 1272 193 L 1276 185 L 1289 166 L 1293 158 L 1299 150 L 1303 142 L 1309 134 L 1311 129 L 1314 126 L 1318 118 L 1348 72 L 1349 73 L 1349 245 L 1343 249 L 1338 250 L 1320 258 L 1320 277 L 1433 277 L 1433 257 L 1410 249 L 1403 245 L 1403 36 L 1433 24 L 1433 5 L 1354 5 L 1225 210 L 1224 209 L 1224 36 L 1226 34 L 1253 24 L 1253 5 Z M 843 5 L 843 24 L 873 36 L 873 245 L 869 248 L 861 250 L 859 252 L 854 253 L 843 258 L 843 277 L 961 277 L 961 257 L 944 252 L 938 249 L 932 248 L 927 245 L 927 174 L 928 173 L 970 173 L 971 172 L 981 172 L 1002 168 L 1005 166 L 1008 166 L 1022 161 L 1045 147 L 1059 133 L 1065 124 L 1073 105 L 1074 95 L 1075 94 L 1075 75 L 1074 74 L 1073 63 L 1070 54 L 1062 40 L 1052 29 L 1044 23 L 1031 16 L 1010 9 L 995 6 L 987 6 L 986 5 Z M 928 33 L 959 33 L 960 34 L 970 34 L 980 36 L 997 44 L 1011 58 L 1017 69 L 1019 78 L 1019 87 L 1020 88 L 1019 90 L 1019 101 L 1018 102 L 1018 107 L 1013 119 L 1000 133 L 993 137 L 982 141 L 966 143 L 965 144 L 928 144 L 927 143 L 927 34 Z M 543 5 L 544 8 L 545 59 L 546 60 L 547 85 L 568 85 L 579 52 L 579 49 L 582 43 L 583 37 L 586 33 L 636 33 L 637 34 L 637 245 L 630 249 L 607 257 L 607 277 L 721 277 L 721 257 L 713 255 L 708 252 L 693 247 L 691 245 L 691 34 L 692 33 L 742 33 L 744 35 L 760 85 L 781 85 L 782 54 L 783 53 L 783 31 L 784 30 L 784 5 Z M 363 2 L 346 6 L 328 12 L 305 24 L 290 35 L 274 51 L 263 66 L 256 78 L 249 95 L 242 124 L 241 160 L 242 161 L 242 170 L 246 189 L 249 196 L 249 199 L 251 201 L 252 206 L 259 220 L 269 234 L 279 245 L 290 254 L 312 267 L 327 273 L 334 274 L 337 276 L 346 277 L 350 279 L 365 280 L 366 281 L 408 281 L 409 280 L 417 280 L 427 277 L 436 276 L 439 274 L 442 274 L 453 270 L 470 262 L 491 247 L 488 231 L 487 217 L 484 204 L 484 197 L 482 192 L 481 178 L 480 177 L 460 177 L 454 195 L 453 202 L 451 205 L 444 233 L 431 242 L 415 248 L 405 249 L 404 250 L 376 249 L 357 243 L 340 233 L 328 222 L 318 209 L 313 200 L 313 198 L 311 196 L 310 191 L 308 189 L 301 159 L 301 142 L 300 141 L 301 139 L 301 119 L 303 113 L 304 101 L 311 80 L 322 62 L 334 50 L 342 44 L 357 37 L 371 33 L 388 32 L 389 31 L 415 33 L 428 37 L 442 44 L 444 47 L 444 50 L 456 89 L 477 89 L 478 78 L 482 59 L 482 53 L 484 48 L 485 35 L 487 29 L 487 23 L 483 20 L 461 10 L 430 2 L 412 1 L 411 0 L 382 0 L 381 1 Z M 120 0 L 102 20 L 86 40 L 83 46 L 81 47 L 80 50 L 71 62 L 70 66 L 66 70 L 65 74 L 53 94 L 52 99 L 50 101 L 45 115 L 43 117 L 40 128 L 38 130 L 37 137 L 32 150 L 30 163 L 28 167 L 27 179 L 25 183 L 23 211 L 16 215 L 14 215 L 0 225 L 0 229 L 12 238 L 23 244 L 25 272 L 27 276 L 27 282 L 30 292 L 30 297 L 32 299 L 33 308 L 35 311 L 38 324 L 40 326 L 43 337 L 45 339 L 45 342 L 50 351 L 53 360 L 58 368 L 58 370 L 65 380 L 65 382 L 71 392 L 73 393 L 73 395 L 78 401 L 78 403 L 90 418 L 91 421 L 120 454 L 125 454 L 125 450 L 113 428 L 100 396 L 100 393 L 98 391 L 98 388 L 93 376 L 92 368 L 90 366 L 90 362 L 88 359 L 87 350 L 85 348 L 85 342 L 82 333 L 82 327 L 80 324 L 80 318 L 78 313 L 77 296 L 75 293 L 74 265 L 72 255 L 73 251 L 75 252 L 108 252 L 115 250 L 130 250 L 130 245 L 103 227 L 130 209 L 130 205 L 128 204 L 113 204 L 104 202 L 77 202 L 76 203 L 73 202 L 75 167 L 77 162 L 78 145 L 80 141 L 80 134 L 82 131 L 82 125 L 84 120 L 85 110 L 87 107 L 88 98 L 90 95 L 92 84 L 95 78 L 95 74 L 102 57 L 103 51 L 105 49 L 106 43 L 108 41 L 108 38 L 110 36 L 118 16 L 125 4 L 125 0 Z"/>
+  </svg>
+</div>
+
+<div class="tabs" id="tabsEl">
+  <div class="tab tw on" data-tab="work">В работе <span class="tc" id="cnt-work">—</span></div>
+  <div class="tab td" data-tab="done">Готово <span class="tc" id="cnt-done">—</span></div>
+</div>
+
+<div class="toolbar">
+  <div class="flt" id="fltG">
+    <button class="fb on" data-f="all">Все</button>
+    <button class="fb" data-f="high">🔴 Срочные</button>
+    <button class="fb" data-f="overdue">⚠️ Просрочены</button>
+  </div>
+  <select id="meSelect" class="fi" style="width:auto;padding:4px 8px">
+    <option value="">Все</option>
+    <option value="АА">Антон А.</option>
+    <option value="АГ">Андриан Г.</option>
+    <option value="АШ">Артём Ш.</option>
+  </select>
+  <button class="ab" id="openAdd">
+    <i class="ti ti-plus"></i> Задача
+  </button>
+</div>
+
+<div class="info-bar" id="statsBar"></div>
+<div class="list" id="listEl"><div class="loading">⏳ Загружаем задачи...</div></div>
+
+<!-- МОДАЛЬНОЕ ОКНО -->
+<div class="ov" id="ov">
+  <div class="md">
+    <div class="mdh"></div>
+    <div class="mhdr">
+      <span class="mtitle" id="mdTitle">Новая задача</span>
+      <button class="xb" id="closeOv"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="fg">
+      <label class="fl">Название <span style="color:var(--rd)">*</span></label>
+      <input class="fi" id="fT" placeholder="Что нужно сделать?" autocomplete="off"/>
+    </div>
+    <div class="fg">
+      <label class="fl">Описание</label>
+      <textarea class="fi" id="fD" rows="2" placeholder="Подробности..." style="resize:vertical"></textarea>
+    </div>
+    <div class="fr2">
+      <div class="fg">
+        <label class="fl">Исполнитель</label>
+        <select class="fi" id="fA">
+          <option value="АА">Антон А.</option>
+          <option value="АГ">Андриан Г.</option>
+          <option value="АШ">Артём Ш.</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Приоритет</label>
+        <select class="fi" id="fP">
+          <option value="high">🔴 Высокий</option>
+          <option value="med" selected>🟡 Средний</option>
+          <option value="low">🟢 Низкий</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr2">
+      <div class="fg">
+        <label class="fl">Срок</label>
+        <input class="fi" type="date" id="fDue"/>
+      </div>
+      <div class="fg">
+        <label class="fl">Статус</label>
+        <select class="fi" id="fS">
+          <option value="progress">В работе</option>
+          <option value="done">Готово</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">Заметка</label>
+      <input class="fi" id="fNote" placeholder="Доп. информация..." autocomplete="off"/>
+    </div>
+    <button class="sb" id="submitBtn">Сохранить</button>
+    <button class="db" id="deleteBtn" style="display:none">Удалить задачу</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── FIREBASE CONFIG ───────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyAJLPAClWqiQQKVBot0N3sANlUbodQ8Vjg",
+  authDomain: "strizh-6f3d6.firebaseapp.com",
+  databaseURL: "https://strizh-6f3d6-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "strizh-6f3d6",
+  storageBucket: "strizh-6f3d6.firebasestorage.app",
+  messagingSenderId: "605622551903",
+  appId: "1:605622551903:web:aa76be1fed95e272cb22ea"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const tasksRef = db.ref('strizh_tasks');
+
+// ─── TELEGRAM MINI APP ─────────────────────────────────────────────
+if (window.Telegram && window.Telegram.WebApp) {
+  window.Telegram.WebApp.ready();
+  window.Telegram.WebApp.expand();
+}
+
+// ─── ДАННЫЕ ────────────────────────────────────────────────────────
+const AVC = {'АА':'#2563eb','АГ':'#d97706','АШ':'#7c3aed'};
+const ANN = {'АА':'Антон А.','АГ':'Андриан Г.','АШ':'Артём Ш.'};
+
+let tasks = [];
+let editId = null;
+let tab = 'work';
+let flt = 'all';
+let me = '';
+
+// ─── УТИЛИТЫ ───────────────────────────────────────────────────────
+function fmt(s) {
+  if (!s) return '';
+  const [y, m, d] = s.split('-');
+  return d + '.' + m + '.' + y.slice(2);
+}
+
+function dcls(s, st) {
+  if (!s || st === 'done') return '';
+  const t = new Date(); t.setHours(0,0,0,0);
+  const dt = new Date(s);
+  if (dt < t) return 'due-ov';
+  if ((dt - t) / 86400000 <= 2) return 'due-sn';
+  return '';
+}
+
+function showToast(msg, dur = 2200) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('on');
+  setTimeout(() => el.classList.remove('on'), dur);
+}
+
+// ─── FIREBASE: СЛУШАЕМ ИЗМЕНЕНИЯ В РЕАЛЬНОМ ВРЕМЕНИ ───────────────
+tasksRef.on('value', (snapshot) => {
+  const data = snapshot.val();
+  tasks = data ? Object.values(data) : [];
+  // Сортируем по дате создания
+  tasks.sort((a, b) => (a.id || 0) - (b.id || 0));
+  render();
+}, (error) => {
+  document.getElementById('connBar').classList.add('show');
+  document.getElementById('listEl').innerHTML =
+    '<div class="empty">❌ Ошибка соединения с базой</div>';
+});
+
+// Индикатор онлайн/офлайн
+db.ref('.info/connected').on('value', (snap) => {
+  document.getElementById('connBar').classList.toggle('show', snap.val() === false);
+});
+
+// ─── СОХРАНЕНИЕ В FIREBASE ─────────────────────────────────────────
+async function saveTask(task) {
+  try {
+    await tasksRef.child(String(task.id)).set(task);
+    showToast('✓ Сохранено');
+  } catch (e) {
+    showToast('⚠️ Ошибка сохранения');
+  }
+}
+
+async function deleteTask(id) {
+  try {
+    await tasksRef.child(String(id)).remove();
+    showToast('Задача удалена');
+  } catch (e) {
+    showToast('⚠️ Ошибка удаления');
+  }
+}
+
+// ─── ФИЛЬТРАЦИЯ ────────────────────────────────────────────────────
+function getList() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  let list = tasks.filter(x => tab === 'work' ? x.status !== 'done' : x.status === 'done');
+  if (me) list = list.filter(x => x.assignee === me);
+  if (flt === 'high') list = list.filter(x => x.prio === 'high');
+  else if (flt === 'overdue') list = list.filter(x => x.due && new Date(x.due) < today && x.status !== 'done');
+  return list;
+}
+
+// ─── РЕНДЕР ────────────────────────────────────────────────────────
+function render() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const work = tasks.filter(x => x.status !== 'done');
+  const done = tasks.filter(x => x.status === 'done');
+  const ov = tasks.filter(x => x.due && new Date(x.due) < today && x.status !== 'done').length;
+
+  document.getElementById('cnt-work').textContent = work.length;
+  document.getElementById('cnt-done').textContent = done.length;
+  document.getElementById('statsBar').innerHTML =
+    (ov ? `<span class="st st-ov">⚠️ Просрочено: <b>${ov}</b></span>` : '') +
+    `<span class="st">Всего задач: <b>${tasks.length}</b></span>`;
+
+  const list = getList();
+  const el = document.getElementById('listEl');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty">Нет задач</div>';
+    return;
+  }
+
+  el.innerHTML = list.map(t => {
+    const dc = dcls(t.due, t.status);
+    const di = dc === 'due-ov' ? 'ti-calendar-x' : 'ti-calendar';
+    const nn = t.note ? `<div class="cnote">${escHtml(t.note)}</div>` : '';
+    return `<div class="card${t.status === 'done' ? ' done-card' : ''}" data-id="${t.id}">
+      <div class="ct">
+        <div class="ctitle">${escHtml(t.title)}</div>
+        <div class="prdot pr-${t.prio}"></div>
+      </div>
+      <div class="cm">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="av" style="background:${AVC[t.assignee]||'#888'}">${t.assignee}</div>
+          <span class="avname">${ANN[t.assignee] || t.assignee}</span>
+        </div>
+        ${t.due ? `<div class="due ${dc}"><i class="ti ${di}" style="font-size:10px"></i>${fmt(t.due)}</div>` : ''}
+      </div>
+      ${nn}
+    </div>`;
+  }).join('');
+
+  el.querySelectorAll('.card').forEach(c =>
+    c.addEventListener('click', () => openEdit(+c.dataset.id))
+  );
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── ОТКРЫТИЕ ФОРМ ─────────────────────────────────────────────────
+function openAdd() {
+  editId = null;
+  document.getElementById('mdTitle').textContent = 'Новая задача';
+  ['fT','fD','fDue','fNote'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fA').value = 'АА';
+  document.getElementById('fP').value = 'med';
+  document.getElementById('fS').value = tab === 'done' ? 'done' : 'progress';
+  document.getElementById('deleteBtn').style.display = 'none';
+  document.getElementById('fT').classList.remove('err');
+  document.getElementById('ov').classList.add('open');
+  setTimeout(() => document.getElementById('fT').focus(), 100);
+}
+
+function openEdit(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  editId = id;
+  document.getElementById('mdTitle').textContent = 'Редактировать';
+  document.getElementById('fT').value = t.title;
+  document.getElementById('fD').value = t.desc || '';
+  document.getElementById('fA').value = t.assignee;
+  document.getElementById('fP').value = t.prio;
+  document.getElementById('fDue').value = t.due || '';
+  document.getElementById('fS').value = t.status;
+  document.getElementById('fNote').value = t.note || '';
+  document.getElementById('deleteBtn').style.display = 'block';
+  document.getElementById('fT').classList.remove('err');
+  document.getElementById('ov').classList.add('open');
+}
+
+function closeOv() {
+  document.getElementById('ov').classList.remove('open');
+}
+
+// ─── СОБЫТИЯ ───────────────────────────────────────────────────────
+document.getElementById('openAdd').addEventListener('click', openAdd);
+document.getElementById('closeOv').addEventListener('click', closeOv);
+document.getElementById('ov').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeOv();
+});
+
+document.getElementById('submitBtn').addEventListener('click', async () => {
+  const title = document.getElementById('fT').value.trim();
+  if (!title) {
+    document.getElementById('fT').classList.add('err');
+    document.getElementById('fT').focus();
+    return;
+  }
+  document.getElementById('fT').classList.remove('err');
+  const t = {
+    id: editId || Date.now(),
+    title,
+    desc: document.getElementById('fD').value,
+    assignee: document.getElementById('fA').value,
+    prio: document.getElementById('fP').value,
+    due: document.getElementById('fDue').value,
+    status: document.getElementById('fS').value,
+    note: document.getElementById('fNote').value
+  };
+  closeOv();
+  await saveTask(t);
+});
+
+document.getElementById('deleteBtn').addEventListener('click', async () => {
+  if (!editId) return;
+  closeOv();
+  await deleteTask(editId);
+});
+
+document.getElementById('tabsEl').addEventListener('click', e => {
+  const b = e.target.closest('.tab');
+  if (!b) return;
+  tab = b.dataset.tab;
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b));
+  render();
+});
+
+document.getElementById('fltG').addEventListener('click', e => {
+  const b = e.target.closest('.fb');
+  if (!b) return;
+  flt = b.dataset.f;
+  document.querySelectorAll('.fb').forEach(x => x.classList.toggle('on', x === b));
+  render();
+});
+
+document.getElementById('meSelect').addEventListener('change', e => {
+  me = e.target.value;
+  render();
+});
+</script>
+</body>
+</html>
