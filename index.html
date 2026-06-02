@@ -151,6 +151,23 @@
       font-size:var(--fs-xs);cursor:pointer;margin-top:8px;font-family:'Roboto',Arial,sans-serif}
     .fi.err{border-color:var(--rd)!important;background:#fff5f5}
 
+    .celebrate-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;
+      align-items:center;justify-content:center;animation:fadeIn .25s ease}
+    .celebrate-ov.open{display:flex}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    #confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:401}
+    .celebrate-card{position:relative;z-index:402;background:#fff;border-radius:20px;padding:32px 28px 26px;
+      width:300px;max-width:88vw;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);
+      animation:popIn .4s cubic-bezier(.18,.89,.32,1.28)}
+    @keyframes popIn{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+    .celebrate-emoji{font-size:52px;line-height:1;margin-bottom:12px;animation:bounce .6s ease}
+    @keyframes bounce{0%,100%{transform:translateY(0)}30%{transform:translateY(-12px)}60%{transform:translateY(-4px)}}
+    .celebrate-title{font-size:24px;font-weight:700;color:var(--sg);margin-bottom:8px;font-family:'Roboto',Arial,sans-serif}
+    .celebrate-text{font-size:14px;color:#555;line-height:1.5;margin-bottom:20px;font-family:'Roboto',Arial,sans-serif}
+    .celebrate-btn{background:var(--sg);color:#fff;border:none;border-radius:10px;padding:11px 28px;
+      font-size:14px;font-weight:600;cursor:pointer;font-family:'Roboto',Arial,sans-serif;transition:background .15s}
+    .celebrate-btn:hover{background:var(--sgd)}
+
     .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(70px);background:#111;color:#fff;
       font-size:11px;padding:8px 18px;border-radius:20px;transition:transform .3s;z-index:300;pointer-events:none;
       white-space:nowrap;font-family:'Roboto',Arial,sans-serif}
@@ -276,6 +293,17 @@
     </div>
     <button class="sb" id="submitBtn">Сохранить</button>
     <button class="db" id="deleteBtn" style="display:none">Удалить задачу</button>
+  </div>
+</div>
+
+<!-- ОКНО ПОЗДРАВЛЕНИЯ -->
+<div class="celebrate-ov" id="celebrateOv">
+  <canvas id="confettiCanvas"></canvas>
+  <div class="celebrate-card">
+    <div class="celebrate-emoji">🎉</div>
+    <div class="celebrate-title">Красавчик!</div>
+    <div class="celebrate-text">Молодец! Мы тобой гордимся,<br>продолжай работу 💪</div>
+    <button class="celebrate-btn" id="celebrateClose">Спасибо!</button>
   </div>
 </div>
 
@@ -471,6 +499,10 @@ document.getElementById('submitBtn').addEventListener('click',async()=>{
   const title=document.getElementById('fT').value.trim();
   if(!title){document.getElementById('fT').classList.add('err');document.getElementById('fT').focus();return;}
   document.getElementById('fT').classList.remove('err');
+  const newStatus=document.getElementById('fS').value;
+  // Была ли задача готова ДО сохранения?
+  const prev = editId ? tasks.find(x=>x.id===editId) : null;
+  const wasDone = prev && prev.status==='done';
   const t={
     id:editId||Date.now(),
     title,
@@ -479,11 +511,15 @@ document.getElementById('submitBtn').addEventListener('click',async()=>{
     assignee:document.getElementById('fA').value,
     prio:document.getElementById('fP').value,
     due:document.getElementById('fDue').value,
-    status:document.getElementById('fS').value,
+    status:newStatus,
     note:document.getElementById('fNote').value
   };
   closeOv();
   await saveTask(t);
+  // Салют только при ПЕРЕХОДЕ в «Готово»
+  if(newStatus==='done' && !wasDone){
+    celebrate();
+  }
 });
 
 document.getElementById('deleteBtn').addEventListener('click',async()=>{
@@ -529,6 +565,77 @@ document.getElementById('whoami').addEventListener('click',()=>{
 });
 
 renderWhoami();
+
+// ─── САЛЮТ / КОНФЕТТИ ──────────────────────────────────────────────
+function celebrate(){
+  const ov = document.getElementById('celebrateOv');
+  ov.classList.add('open');
+  launchConfetti();
+}
+
+document.getElementById('celebrateClose').addEventListener('click',()=>{
+  document.getElementById('celebrateOv').classList.remove('open');
+});
+document.getElementById('celebrateOv').addEventListener('click',e=>{
+  if(e.target===e.currentTarget) e.currentTarget.classList.remove('open');
+});
+
+function launchConfetti(){
+  const canvas = document.getElementById('confettiCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = window.innerWidth;
+  const H = canvas.height = window.innerHeight;
+  const colors = ['#11C386','#0a8f61','#f59e0b','#e74c3c','#2563eb','#7c3aed','#ffd93d'];
+  const parts = [];
+  // Запуск из двух нижних углов вверх (салют)
+  const bursts = [{x:W*0.2,y:H},{x:W*0.8,y:H},{x:W*0.5,y:H}];
+  bursts.forEach(b=>{
+    for(let i=0;i<60;i++){
+      const angle = (-Math.PI/2) + (Math.random()-0.5)*1.2;
+      const speed = 8 + Math.random()*9;
+      parts.push({
+        x:b.x, y:b.y,
+        vx:Math.cos(angle)*speed,
+        vy:Math.sin(angle)*speed,
+        size:5+Math.random()*6,
+        color:colors[Math.floor(Math.random()*colors.length)],
+        rot:Math.random()*Math.PI,
+        vrot:(Math.random()-0.5)*0.3,
+        life:1
+      });
+    }
+  });
+  let frame = 0;
+  function tick(){
+    ctx.clearRect(0,0,W,H);
+    let alive = false;
+    parts.forEach(p=>{
+      p.vy += 0.28;      // гравитация
+      p.vx *= 0.99;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vrot;
+      p.life -= 0.008;
+      if(p.life>0 && p.y<H+20){
+        alive = true;
+        ctx.save();
+        ctx.globalAlpha = Math.max(0,p.life);
+        ctx.translate(p.x,p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.6);
+        ctx.restore();
+      }
+    });
+    frame++;
+    if(alive && frame<260){
+      requestAnimationFrame(tick);
+    } else {
+      ctx.clearRect(0,0,W,H);
+    }
+  }
+  tick();
+}
 </script>
 </body>
 </html>
