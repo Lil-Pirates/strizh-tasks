@@ -75,13 +75,15 @@
       font-family:'Roboto',Arial,sans-serif;transition:background .15s}
     .ab:hover{background:var(--sg)}
 
-    .toolbar2{padding:0 var(--pad) 8px;display:flex;gap:6px;background:#fff;align-items:center;flex-wrap:wrap;border-bottom:.5px solid #f0f0f0}
-    .flt{display:flex;gap:5px;flex:1;flex-wrap:wrap}
-    .fb{font-size:var(--fs-xs);padding:4px 8px;border-radius:20px;cursor:pointer;border:.5px solid #e0e0e0;
+    .toolbar2{padding:0 var(--pad) 8px;display:flex;flex-direction:column;gap:7px;background:#fff;border-bottom:.5px solid #f0f0f0}
+    .flt{display:flex;gap:5px;flex-wrap:wrap}
+    .fb{font-size:var(--fs-xs);padding:4px 10px;border-radius:20px;cursor:pointer;border:.5px solid #e0e0e0;
       background:#fff;color:#666;transition:all .15s;white-space:nowrap;font-family:'Roboto',Arial,sans-serif}
     .fb.on{background:var(--sg);color:#fff;border-color:var(--sg)}
-    .sort-sel{font-size:var(--fs-xs);padding:4px 7px;border-radius:20px;border:.5px solid #e0e0e0;
-      background:#fff;color:#666;font-family:'Roboto',Arial,sans-serif;-webkit-appearance:none;outline:none}
+    .selects-row{display:flex;gap:7px}
+    .sort-sel{flex:1;font-size:var(--fs-xs);padding:6px 9px;border-radius:20px;border:.5px solid #e0e0e0;
+      background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23999' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 11px center;
+      color:#666;font-family:'Roboto',Arial,sans-serif;-webkit-appearance:none;appearance:none;outline:none;text-align:left}
 
     .info-bar{padding:7px var(--pad) 0;display:flex;gap:5px;flex-wrap:wrap}
     .st{font-size:var(--fs-xs);padding:3px 8px;border-radius:20px;border:.5px solid #e0e0e0;color:#555;
@@ -185,17 +187,19 @@
     <button class="fb" data-f="overdue">⚠️ Просрочены</button>
     <button class="fb" data-f="mine">Мои</button>
   </div>
-  <select id="meSelect" class="sort-sel">
-    <option value="">Все люди</option>
-    <option value="АА">Антон А.</option>
-    <option value="АГ">Андриан Г.</option>
-    <option value="АШ">Артём Ш.</option>
-  </select>
-  <select id="sortSel" class="sort-sel">
-    <option value="due">↑ По сроку</option>
-    <option value="prio">★ По приоритету</option>
-    <option value="created">🕐 Новые</option>
-  </select>
+  <div class="selects-row">
+    <select id="meSelect" class="sort-sel">
+      <option value="">Все люди</option>
+      <option value="АА">Антон А.</option>
+      <option value="АГ">Андриан Г.</option>
+      <option value="АШ">Артём Ш.</option>
+    </select>
+    <select id="sortSel" class="sort-sel">
+      <option value="due">↑ По сроку</option>
+      <option value="prio">★ По приоритету</option>
+      <option value="created">🕐 Новые</option>
+    </select>
+  </div>
 </div>
 
 <div class="info-bar" id="statsBar"></div>
