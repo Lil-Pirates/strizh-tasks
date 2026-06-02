@@ -5,26 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>СТРИЖ — Задачи</title>
 
-  <!-- Telegram Mini App SDK -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Favicon: галочка на зелёном фоне (бренд СТРИЖ) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2311C386'/%3E%3Cpath d='M22 33l7 7L46 23' fill='none' stroke='%23fff' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2311C386'/%3E%3Cpath d='M22 33l7 7L46 23' fill='none' stroke='%23fff' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 
-  <!-- Firebase compat SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
-  <!-- Google Fonts: Roboto с кириллицей -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-
-  <!-- Tabler Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
 
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     :root{
       --sg:#11C386;--sgd:#0a8f61;--sgl:#e8faf4;
-      --bk:#1A1A1A;--rd:#e74c3c;--am:#f59e0b;
+      --bk:#1A1A1A;--rd:#e74c3c;--am:#f59e0b;--bl:#2563eb;
+      --proj-pmic:#7c3aed;--proj-strizh:#11C386;
       --fs-base:14px;--fs-sm:12px;--fs-xs:10px;--fs-card:13px;
       --pad:14px;--gap:8px
     }
@@ -34,134 +33,118 @@
     @media(min-width:700px){
       :root{--fs-base:15px;--fs-sm:13px;--fs-xs:11px;--fs-card:14px;--pad:18px;--gap:10px}
     }
-
     html,body{height:100%;background:#fff}
     body{font-family:'Roboto',Arial,sans-serif;font-size:var(--fs-base);background:#fff}
 
-    /* ШАПКА */
     .hd{background:#fff;border-bottom:2.5px solid var(--sg);padding:10px var(--pad);
-      display:flex;align-items:center;justify-content:center;min-height:52px;
-      position:sticky;top:0;z-index:10}
+      display:flex;align-items:center;justify-content:center;min-height:52px;position:sticky;top:0;z-index:10}
     .logo-svg{height:clamp(28px,5vw,40px);width:auto}
 
-    /* СТАТУС СОЕДИНЕНИЯ */
-    .conn-bar{font-size:var(--fs-xs);text-align:center;padding:4px;
-      background:#fef3c7;color:#92400e;display:none}
+    .conn-bar{font-size:var(--fs-xs);text-align:center;padding:4px;background:#fef3c7;color:#92400e;display:none}
     .conn-bar.show{display:block}
 
-    /* ТАБЫ */
-    .tabs{display:flex;border-bottom:.5px solid #e8e8e8;
-      position:sticky;top:52px;z-index:9;background:#fff}
-    .tab{flex:1;padding:clamp(8px,2vw,12px) 0;font-size:var(--fs-sm);
-      font-weight:500;text-align:center;cursor:pointer;color:#888;
-      border-bottom:2px solid transparent;transition:all .15s;
-      font-family:'Roboto',Arial,sans-serif}
+    /* ПЕРЕКЛЮЧАТЕЛЬ ПРОЕКТОВ */
+    .proj-switch{display:flex;gap:0;background:#f4f4f4;padding:4px;margin:10px var(--pad) 0;border-radius:10px}
+    .ps{flex:1;text-align:center;padding:7px 0;font-size:var(--fs-sm);font-weight:500;
+      cursor:pointer;color:#666;border-radius:7px;transition:all .15s;font-family:'Roboto',Arial,sans-serif}
+    .ps.on{background:#fff;color:#111;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+    .ps.on[data-p="PMIC"]{color:var(--proj-pmic)}
+    .ps.on[data-p="STRIZH"]{color:var(--proj-strizh)}
+    .ps .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle}
+    .ps[data-p="PMIC"] .dot{background:var(--proj-pmic)}
+    .ps[data-p="STRIZH"] .dot{background:var(--proj-strizh)}
+
+    .tabs{display:flex;border-bottom:.5px solid #e8e8e8;background:#fff;margin-top:10px}
+    .tab{flex:1;padding:clamp(8px,2vw,12px) 2px;font-size:var(--fs-sm);font-weight:500;text-align:center;
+      cursor:pointer;color:#888;border-bottom:2px solid transparent;transition:all .15s;font-family:'Roboto',Arial,sans-serif}
     .tab.on{color:var(--sg);border-bottom-color:var(--sg)}
-    .tc{display:inline-flex;align-items:center;justify-content:center;
-      width:16px;height:16px;border-radius:50%;font-size:9px;
-      margin-left:4px;font-weight:500}
-    .tw .tc{background:#fef3c7;color:#92400e}
+    .tc{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;
+      border-radius:8px;font-size:9px;margin-left:3px;font-weight:500}
+    .tw .tc{background:#e0e7ff;color:#3730a3}
+    .tp .tc{background:#fef3c7;color:#92400e}
     .td .tc{background:#e8faf4;color:var(--sgd)}
 
-    /* ТУЛБАР */
-    .toolbar{padding:9px var(--pad) 8px;display:flex;gap:6px;
-      background:#fff;border-bottom:.5px solid #f0f0f0;
-      align-items:center;flex-wrap:wrap}
-    .flt{display:flex;gap:5px;flex:1;flex-wrap:wrap}
-    .fb{font-size:var(--fs-xs);padding:4px 8px;border-radius:20px;
-      cursor:pointer;border:.5px solid #e0e0e0;background:#fff;
-      color:#666;transition:all .15s;white-space:nowrap;
-      font-family:'Roboto',Arial,sans-serif}
-    .fb.on{background:var(--sg);color:#fff;border-color:var(--sg)}
-    .ab{display:flex;align-items:center;gap:4px;font-size:var(--fs-xs);
-      font-weight:500;padding:6px 11px;background:var(--bk);color:#fff;
-      border:none;border-radius:7px;cursor:pointer;white-space:nowrap;
+    .toolbar{padding:9px var(--pad) 8px;display:flex;gap:6px;background:#fff;border-bottom:.5px solid #f0f0f0;align-items:center;flex-wrap:wrap}
+    .search-wrap{position:relative;flex:1;min-width:120px}
+    .search-wrap i{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#aaa;font-size:14px}
+    .search-inp{width:100%;padding:6px 9px 6px 28px;border-radius:20px;border:.5px solid #e0e0e0;
+      background:#fafafa;font-size:var(--fs-xs);font-family:'Roboto',Arial,sans-serif;outline:none}
+    .search-inp:focus{border-color:var(--sg);background:#fff}
+    .ab{display:flex;align-items:center;gap:4px;font-size:var(--fs-xs);font-weight:500;padding:6px 11px;
+      background:var(--bk);color:#fff;border:none;border-radius:7px;cursor:pointer;white-space:nowrap;
       font-family:'Roboto',Arial,sans-serif;transition:background .15s}
     .ab:hover{background:var(--sg)}
 
-    /* INFO BAR */
+    .toolbar2{padding:0 var(--pad) 8px;display:flex;gap:6px;background:#fff;align-items:center;flex-wrap:wrap;border-bottom:.5px solid #f0f0f0}
+    .flt{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+    .fb{font-size:var(--fs-xs);padding:4px 8px;border-radius:20px;cursor:pointer;border:.5px solid #e0e0e0;
+      background:#fff;color:#666;transition:all .15s;white-space:nowrap;font-family:'Roboto',Arial,sans-serif}
+    .fb.on{background:var(--sg);color:#fff;border-color:var(--sg)}
+    .sort-sel{font-size:var(--fs-xs);padding:4px 7px;border-radius:20px;border:.5px solid #e0e0e0;
+      background:#fff;color:#666;font-family:'Roboto',Arial,sans-serif;-webkit-appearance:none;outline:none}
+
     .info-bar{padding:7px var(--pad) 0;display:flex;gap:5px;flex-wrap:wrap}
-    .st{font-size:var(--fs-xs);padding:3px 8px;border-radius:20px;
-      border:.5px solid #e0e0e0;color:#555;background:#fafafa;
-      white-space:nowrap;font-family:'Roboto',Arial,sans-serif}
+    .st{font-size:var(--fs-xs);padding:3px 8px;border-radius:20px;border:.5px solid #e0e0e0;color:#555;
+      background:#fafafa;white-space:nowrap;font-family:'Roboto',Arial,sans-serif}
     .st b{color:#111}
     .st-ov{border-color:#fca5a5;color:#c0392b;background:#fff5f5}
     .st-ov b{color:#c0392b}
 
-    /* СПИСОК */
-    .list{padding:10px var(--pad) 80px;display:flex;
-      flex-direction:column;gap:var(--gap);background:#fff;min-height:200px}
-    .empty{text-align:center;color:#aaa;font-size:var(--fs-sm);
-      padding:40px 0;font-family:'Roboto',Arial,sans-serif}
-    .loading{text-align:center;color:#aaa;font-size:var(--fs-sm);
-      padding:40px 0;font-family:'Roboto',Arial,sans-serif}
+    .list{padding:10px var(--pad) 90px;display:flex;flex-direction:column;gap:var(--gap);background:#fff;min-height:200px}
+    .empty,.loading{text-align:center;color:#aaa;font-size:var(--fs-sm);padding:40px 0;font-family:'Roboto',Arial,sans-serif}
 
-    /* КАРТОЧКА */
-    .card{background:#fff;border-radius:10px;border:.5px solid #e8e8e8;
-      padding:11px 12px;cursor:pointer;transition:border-color .15s;position:relative}
+    .card{background:#fff;border-radius:10px;border:.5px solid #e8e8e8;padding:11px 12px;cursor:pointer;
+      transition:border-color .15s;position:relative;overflow:hidden}
     .card:hover{border-color:var(--sg)}
     .card:active{border-color:var(--sg);background:#fafffe}
-    .ct{display:flex;align-items:flex-start;justify-content:space-between;
-      gap:8px;margin-bottom:7px}
-    .ctitle{font-size:var(--fs-card);font-weight:500;color:#111;
-      line-height:1.4;flex:1;font-family:'Roboto',Arial,sans-serif}
+    .card-stripe{position:absolute;left:0;top:0;bottom:0;width:3px}
+    .stripe-PMIC{background:var(--proj-pmic)}
+    .stripe-STRIZH{background:var(--proj-strizh)}
+    .stripe-none{background:#ccc}
+    .ct{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:7px}
+    .ctitle{font-size:var(--fs-card);font-weight:500;color:#111;line-height:1.4;flex:1;font-family:'Roboto',Arial,sans-serif}
     .prdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px}
     .pr-high{background:var(--rd)}.pr-med{background:var(--am)}.pr-low{background:var(--sg)}
+    .proj-tag{display:inline-block;font-size:8px;font-weight:600;padding:2px 7px;border-radius:10px;
+      margin-bottom:6px;letter-spacing:.03em;font-family:'Roboto',Arial,sans-serif}
+    .tag-PMIC{background:#f3eeff;color:var(--proj-pmic)}
+    .tag-STRIZH{background:var(--sgl);color:var(--sgd)}
+    .tag-none{background:#f0f0f0;color:#888}
     .cm{display:flex;align-items:center;justify-content:space-between;gap:8px}
-    .av{width:clamp(20px,4vw,24px);height:clamp(20px,4vw,24px);border-radius:50%;
-      font-size:8px;font-weight:600;display:flex;align-items:center;
-      justify-content:center;color:#fff;flex-shrink:0;
-      font-family:'Roboto',Arial,sans-serif}
-    .avname{font-size:var(--fs-xs);color:#666;flex:1;
-      font-family:'Roboto',Arial,sans-serif}
-    .due{font-size:var(--fs-xs);display:flex;align-items:center;
-      gap:3px;color:#999;font-family:'Roboto',Arial,sans-serif}
+    .av{width:clamp(20px,4vw,24px);height:clamp(20px,4vw,24px);border-radius:50%;font-size:8px;font-weight:600;
+      display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;font-family:'Roboto',Arial,sans-serif}
+    .avname{font-size:var(--fs-xs);color:#666;flex:1;font-family:'Roboto',Arial,sans-serif}
+    .due{font-size:var(--fs-xs);display:flex;align-items:center;gap:3px;color:#999;font-family:'Roboto',Arial,sans-serif}
     .due-ov{color:var(--rd)!important;font-weight:500}
     .due-sn{color:var(--am)!important;font-weight:500}
-    .cnote{font-size:var(--fs-xs);color:#999;margin-top:6px;
-      padding-top:6px;border-top:.5px solid #f0f0f0;line-height:1.5;
-      font-family:'Roboto',Arial,sans-serif}
+    .cnote{font-size:var(--fs-xs);color:#999;margin-top:6px;padding-top:6px;border-top:.5px solid #f0f0f0;
+      line-height:1.5;font-family:'Roboto',Arial,sans-serif}
     .done-card .ctitle{text-decoration:line-through;color:#aaa}
 
-    /* МОДАЛЬНОЕ ОКНО */
-    .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
-      z-index:200;align-items:flex-end;justify-content:center}
+    .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center}
     .ov.open{display:flex}
-    .md{background:#fff;border-radius:16px 16px 0 0;
-      padding:clamp(16px,4vw,22px) clamp(14px,4vw,20px) 32px;
+    .md{background:#fff;border-radius:16px 16px 0 0;padding:clamp(16px,4vw,22px) clamp(14px,4vw,20px) 32px;
       width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
     .mdh{width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 16px}
     .mhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-    .mtitle{font-size:clamp(14px,3vw,16px);font-weight:600;color:#111;
-      font-family:'Roboto',Arial,sans-serif}
-    .xb{background:none;border:none;cursor:pointer;color:#aaa;
-      font-size:20px;line-height:1;padding:4px}
+    .mtitle{font-size:clamp(14px,3vw,16px);font-weight:600;color:#111;font-family:'Roboto',Arial,sans-serif}
+    .xb{background:none;border:none;cursor:pointer;color:#aaa;font-size:20px;line-height:1;padding:4px}
     .fg{margin-bottom:10px}
-    .fl{font-size:var(--fs-xs);color:#888;margin-bottom:4px;display:block;
-      font-weight:500;font-family:'Roboto',Arial,sans-serif}
-    .fi{width:100%;padding:9px 10px;border-radius:8px;
-      border:.5px solid #e0e0e0;background:#fafafa;color:#111;
-      font-size:var(--fs-sm);font-family:'Roboto',Arial,sans-serif;
-      -webkit-appearance:none;outline:none}
+    .fl{font-size:var(--fs-xs);color:#888;margin-bottom:4px;display:block;font-weight:500;font-family:'Roboto',Arial,sans-serif}
+    .fi{width:100%;padding:9px 10px;border-radius:8px;border:.5px solid #e0e0e0;background:#fafafa;color:#111;
+      font-size:var(--fs-sm);font-family:'Roboto',Arial,sans-serif;-webkit-appearance:none;outline:none}
     .fi:focus{border-color:var(--sg);background:#fff}
     .fr2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-    .sb{width:100%;padding:12px;background:var(--sg);color:#fff;
-      border:none;border-radius:9px;font-size:var(--fs-sm);font-weight:600;
-      cursor:pointer;margin-top:4px;font-family:'Roboto',Arial,sans-serif;
-      transition:background .15s}
+    .sb{width:100%;padding:12px;background:var(--sg);color:#fff;border:none;border-radius:9px;font-size:var(--fs-sm);
+      font-weight:600;cursor:pointer;margin-top:4px;font-family:'Roboto',Arial,sans-serif;transition:background .15s}
     .sb:hover{background:var(--sgd)}
-    .db{width:100%;padding:10px;background:#fff;color:var(--rd);
-      border:.5px solid var(--rd);border-radius:9px;font-size:var(--fs-xs);
-      cursor:pointer;margin-top:8px;font-family:'Roboto',Arial,sans-serif}
+    .db{width:100%;padding:10px;background:#fff;color:var(--rd);border:.5px solid var(--rd);border-radius:9px;
+      font-size:var(--fs-xs);cursor:pointer;margin-top:8px;font-family:'Roboto',Arial,sans-serif}
     .fi.err{border-color:var(--rd)!important;background:#fff5f5}
 
-    /* ТОСТ */
-    .toast{position:fixed;bottom:20px;left:50%;
-      transform:translateX(-50%) translateY(70px);
-      background:#111;color:#fff;font-size:11px;padding:8px 18px;
-      border-radius:20px;transition:transform .3s;z-index:300;
-      pointer-events:none;white-space:nowrap;
-      font-family:'Roboto',Arial,sans-serif}
+    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(70px);background:#111;color:#fff;
+      font-size:11px;padding:8px 18px;border-radius:20px;transition:transform .3s;z-index:300;pointer-events:none;
+      white-space:nowrap;font-family:'Roboto',Arial,sans-serif}
     .toast.on{transform:translateX(-50%) translateY(0)}
   </style>
 </head>
@@ -175,32 +158,49 @@
   </svg>
 </div>
 
+<div class="proj-switch" id="projSwitch">
+  <div class="ps on" data-p="">Все</div>
+  <div class="ps" data-p="PMIC"><span class="dot"></span>PMIC</div>
+  <div class="ps" data-p="STRIZH"><span class="dot"></span>СТРИЖ</div>
+</div>
+
 <div class="tabs" id="tabsEl">
-  <div class="tab tw on" data-tab="work">В работе <span class="tc" id="cnt-work">—</span></div>
+  <div class="tab tw on" data-tab="waiting">Ожидает <span class="tc" id="cnt-waiting">—</span></div>
+  <div class="tab tp" data-tab="progress">В работе <span class="tc" id="cnt-progress">—</span></div>
   <div class="tab td" data-tab="done">Готово <span class="tc" id="cnt-done">—</span></div>
 </div>
 
 <div class="toolbar">
+  <div class="search-wrap">
+    <i class="ti ti-search"></i>
+    <input class="search-inp" id="searchInp" placeholder="Поиск по задачам..." autocomplete="off"/>
+  </div>
+  <button class="ab" id="openAdd"><i class="ti ti-plus"></i> Задача</button>
+</div>
+
+<div class="toolbar2">
   <div class="flt" id="fltG">
     <button class="fb on" data-f="all">Все</button>
     <button class="fb" data-f="high">🔴 Срочные</button>
     <button class="fb" data-f="overdue">⚠️ Просрочены</button>
+    <button class="fb" data-f="mine">Мои</button>
   </div>
-  <select id="meSelect" class="fi" style="width:auto;padding:4px 8px">
-    <option value="">Все</option>
+  <select id="meSelect" class="sort-sel">
+    <option value="">Все люди</option>
     <option value="АА">Антон А.</option>
     <option value="АГ">Андриан Г.</option>
     <option value="АШ">Артём Ш.</option>
   </select>
-  <button class="ab" id="openAdd">
-    <i class="ti ti-plus"></i> Задача
-  </button>
+  <select id="sortSel" class="sort-sel">
+    <option value="due">↑ По сроку</option>
+    <option value="prio">★ По приоритету</option>
+    <option value="created">🕐 Новые</option>
+  </select>
 </div>
 
 <div class="info-bar" id="statsBar"></div>
 <div class="list" id="listEl"><div class="loading">⏳ Загружаем задачи...</div></div>
 
-<!-- МОДАЛЬНОЕ ОКНО -->
 <div class="ov" id="ov">
   <div class="md">
     <div class="mdh"></div>
@@ -218,6 +218,13 @@
     </div>
     <div class="fr2">
       <div class="fg">
+        <label class="fl">Проект</label>
+        <select class="fi" id="fProj">
+          <option value="STRIZH">СТРИЖ</option>
+          <option value="PMIC">PMIC</option>
+        </select>
+      </div>
+      <div class="fg">
         <label class="fl">Исполнитель</label>
         <select class="fi" id="fA">
           <option value="АА">Антон А.</option>
@@ -225,6 +232,8 @@
           <option value="АШ">Артём Ш.</option>
         </select>
       </div>
+    </div>
+    <div class="fr2">
       <div class="fg">
         <label class="fl">Приоритет</label>
         <select class="fi" id="fP">
@@ -233,19 +242,18 @@
           <option value="low">🟢 Низкий</option>
         </select>
       </div>
-    </div>
-    <div class="fr2">
-      <div class="fg">
-        <label class="fl">Срок</label>
-        <input class="fi" type="date" id="fDue"/>
-      </div>
       <div class="fg">
         <label class="fl">Статус</label>
         <select class="fi" id="fS">
+          <option value="waiting">Ожидает начала</option>
           <option value="progress">В работе</option>
           <option value="done">Готово</option>
         </select>
       </div>
+    </div>
+    <div class="fg">
+      <label class="fl">Срок</label>
+      <input class="fi" type="date" id="fDue"/>
     </div>
     <div class="fg">
       <label class="fl">Заметка</label>
@@ -259,7 +267,6 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── FIREBASE CONFIG ───────────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyAJLPAClWqiQQKVBot0N3sANlUbodQ8Vjg",
   authDomain: "strizh-6f3d6.firebaseapp.com",
@@ -269,122 +276,107 @@ const firebaseConfig = {
   messagingSenderId: "605622551903",
   appId: "1:605622551903:web:aa76be1fed95e272cb22ea"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const tasksRef = db.ref('strizh_tasks');
 
-// ─── TELEGRAM MINI APP ─────────────────────────────────────────────
 if (window.Telegram && window.Telegram.WebApp) {
   window.Telegram.WebApp.ready();
   window.Telegram.WebApp.expand();
 }
 
-// ─── ДАННЫЕ ────────────────────────────────────────────────────────
 const AVC = {'АА':'#2563eb','АГ':'#d97706','АШ':'#7c3aed'};
 const ANN = {'АА':'Антон А.','АГ':'Андриан Г.','АШ':'Артём Ш.'};
+const PRIO_RANK = {high:0, med:1, low:2};
 
 let tasks = [];
 let editId = null;
-let tab = 'work';
+let tab = 'waiting';
 let flt = 'all';
 let me = '';
+let proj = '';
+let sortBy = 'due';
+let search = '';
 
-// ─── УТИЛИТЫ ───────────────────────────────────────────────────────
-function fmt(s) {
-  if (!s) return '';
-  const [y, m, d] = s.split('-');
-  return d + '.' + m + '.' + y.slice(2);
-}
+function fmt(s){if(!s)return'';const[y,m,d]=s.split('-');return d+'.'+m+'.'+y.slice(2);}
+function dcls(s,st){if(!s||st==='done')return'';const t=new Date();t.setHours(0,0,0,0);const dt=new Date(s);if(dt<t)return'due-ov';if((dt-t)/86400000<=2)return'due-sn';return'';}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showToast(msg,dur=2200){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('on');setTimeout(()=>el.classList.remove('on'),dur);}
+function projName(p){return p==='PMIC'?'PMIC':p==='STRIZH'?'СТРИЖ':'Без проекта';}
+function projClass(p){return p==='PMIC'?'PMIC':p==='STRIZH'?'STRIZH':'none';}
 
-function dcls(s, st) {
-  if (!s || st === 'done') return '';
-  const t = new Date(); t.setHours(0,0,0,0);
-  const dt = new Date(s);
-  if (dt < t) return 'due-ov';
-  if ((dt - t) / 86400000 <= 2) return 'due-sn';
-  return '';
-}
-
-function showToast(msg, dur = 2200) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('on');
-  setTimeout(() => el.classList.remove('on'), dur);
-}
-
-// ─── FIREBASE: СЛУШАЕМ ИЗМЕНЕНИЯ В РЕАЛЬНОМ ВРЕМЕНИ ───────────────
 tasksRef.on('value', (snapshot) => {
   const data = snapshot.val();
   tasks = data ? Object.values(data) : [];
-  // Сортируем по дате создания
-  tasks.sort((a, b) => (a.id || 0) - (b.id || 0));
   render();
 }, (error) => {
   document.getElementById('connBar').classList.add('show');
-  document.getElementById('listEl').innerHTML =
-    '<div class="empty">❌ Ошибка соединения с базой</div>';
+  document.getElementById('listEl').innerHTML = '<div class="empty">❌ Ошибка соединения с базой</div>';
 });
 
-// Индикатор онлайн/офлайн
 db.ref('.info/connected').on('value', (snap) => {
   document.getElementById('connBar').classList.toggle('show', snap.val() === false);
 });
 
-// ─── СОХРАНЕНИЕ В FIREBASE ─────────────────────────────────────────
-async function saveTask(task) {
-  try {
-    await tasksRef.child(String(task.id)).set(task);
-    showToast('✓ Сохранено');
-  } catch (e) {
-    showToast('⚠️ Ошибка сохранения');
-  }
+async function saveTask(task){
+  try{ await tasksRef.child(String(task.id)).set(task); showToast('✓ Сохранено'); }
+  catch(e){ showToast('⚠️ Ошибка сохранения'); }
+}
+async function deleteTask(id){
+  try{ await tasksRef.child(String(id)).remove(); showToast('Задача удалена'); }
+  catch(e){ showToast('⚠️ Ошибка удаления'); }
 }
 
-async function deleteTask(id) {
-  try {
-    await tasksRef.child(String(id)).remove();
-    showToast('Задача удалена');
-  } catch (e) {
-    showToast('⚠️ Ошибка удаления');
-  }
-}
-
-// ─── ФИЛЬТРАЦИЯ ────────────────────────────────────────────────────
-function getList() {
-  const today = new Date(); today.setHours(0,0,0,0);
-  let list = tasks.filter(x => tab === 'work' ? x.status !== 'done' : x.status === 'done');
-  if (me) list = list.filter(x => x.assignee === me);
-  if (flt === 'high') list = list.filter(x => x.prio === 'high');
-  else if (flt === 'overdue') list = list.filter(x => x.due && new Date(x.due) < today && x.status !== 'done');
+function getList(){
+  const today=new Date();today.setHours(0,0,0,0);
+  let list=tasks.filter(x=>{
+    const st = x.status || 'progress';
+    return tab === st;
+  });
+  if(proj) list=list.filter(x=>(x.project||'')===proj);
+  if(me) list=list.filter(x=>x.assignee===me);
+  if(flt==='high') list=list.filter(x=>x.prio==='high');
+  else if(flt==='overdue') list=list.filter(x=>x.due&&new Date(x.due)<today&&x.status!=='done');
+  else if(flt==='mine'&&me) list=list.filter(x=>x.assignee===me);
+  if(search){const q=search.toLowerCase();list=list.filter(x=>(x.title||'').toLowerCase().includes(q)||(x.note||'').toLowerCase().includes(q)||(x.desc||'').toLowerCase().includes(q));}
+  // сортировка
+  list.sort((a,b)=>{
+    if(sortBy==='due'){
+      if(!a.due&&!b.due)return 0;
+      if(!a.due)return 1;
+      if(!b.due)return -1;
+      return new Date(a.due)-new Date(b.due);
+    }
+    if(sortBy==='prio') return (PRIO_RANK[a.prio]??3)-(PRIO_RANK[b.prio]??3);
+    return (b.id||0)-(a.id||0); // created (новые сверху)
+  });
   return list;
 }
 
-// ─── РЕНДЕР ────────────────────────────────────────────────────────
-function render() {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const work = tasks.filter(x => x.status !== 'done');
-  const done = tasks.filter(x => x.status === 'done');
-  const ov = tasks.filter(x => x.due && new Date(x.due) < today && x.status !== 'done').length;
+function render(){
+  const today=new Date();today.setHours(0,0,0,0);
+  let scope = proj ? tasks.filter(x=>(x.project||'')===proj) : tasks;
+  document.getElementById('cnt-waiting').textContent=scope.filter(x=>(x.status||'progress')==='waiting').length;
+  document.getElementById('cnt-progress').textContent=scope.filter(x=>(x.status||'progress')==='progress').length;
+  document.getElementById('cnt-done').textContent=scope.filter(x=>x.status==='done').length;
 
-  document.getElementById('cnt-work').textContent = work.length;
-  document.getElementById('cnt-done').textContent = done.length;
-  document.getElementById('statsBar').innerHTML =
-    (ov ? `<span class="st st-ov">⚠️ Просрочено: <b>${ov}</b></span>` : '') +
-    `<span class="st">Всего задач: <b>${tasks.length}</b></span>`;
+  const ov=scope.filter(x=>x.due&&new Date(x.due)<today&&x.status!=='done').length;
+  document.getElementById('statsBar').innerHTML=
+    (ov?`<span class="st st-ov">⚠️ Просрочено: <b>${ov}</b></span>`:'')+
+    `<span class="st">Всего: <b>${scope.length}</b></span>`;
 
-  const list = getList();
-  const el = document.getElementById('listEl');
-  if (!list.length) {
-    el.innerHTML = '<div class="empty">Нет задач</div>';
-    return;
-  }
+  const list=getList();
+  const el=document.getElementById('listEl');
+  if(!list.length){el.innerHTML='<div class="empty">Нет задач</div>';return;}
 
-  el.innerHTML = list.map(t => {
-    const dc = dcls(t.due, t.status);
-    const di = dc === 'due-ov' ? 'ti-calendar-x' : 'ti-calendar';
-    const nn = t.note ? `<div class="cnote">${escHtml(t.note)}</div>` : '';
-    return `<div class="card${t.status === 'done' ? ' done-card' : ''}" data-id="${t.id}">
+  el.innerHTML=list.map(t=>{
+    const dc=dcls(t.due,t.status);
+    const di=dc==='due-ov'?'ti-calendar-x':'ti-calendar';
+    const nn=t.note?`<div class="cnote">${escHtml(t.note)}</div>`:'';
+    const pc=projClass(t.project);
+    return `<div class="card${t.status==='done'?' done-card':''}" data-id="${t.id}">
+      <div class="card-stripe stripe-${pc}"></div>
+      <span class="proj-tag tag-${pc}">${projName(t.project)}</span>
       <div class="ct">
         <div class="ctitle">${escHtml(t.title)}</div>
         <div class="prdot pr-${t.prio}"></div>
@@ -392,115 +384,101 @@ function render() {
       <div class="cm">
         <div style="display:flex;align-items:center;gap:6px">
           <div class="av" style="background:${AVC[t.assignee]||'#888'}">${t.assignee}</div>
-          <span class="avname">${ANN[t.assignee] || t.assignee}</span>
+          <span class="avname">${ANN[t.assignee]||t.assignee}</span>
         </div>
-        ${t.due ? `<div class="due ${dc}"><i class="ti ${di}" style="font-size:10px"></i>${fmt(t.due)}</div>` : ''}
+        ${t.due?`<div class="due ${dc}"><i class="ti ${di}" style="font-size:10px"></i>${fmt(t.due)}</div>`:''}
       </div>
       ${nn}
     </div>`;
   }).join('');
 
-  el.querySelectorAll('.card').forEach(c =>
-    c.addEventListener('click', () => openEdit(+c.dataset.id))
-  );
+  el.querySelectorAll('.card').forEach(c=>c.addEventListener('click',()=>openEdit(+c.dataset.id)));
 }
 
-function escHtml(s) {
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ─── ОТКРЫТИЕ ФОРМ ─────────────────────────────────────────────────
-function openAdd() {
-  editId = null;
-  document.getElementById('mdTitle').textContent = 'Новая задача';
-  ['fT','fD','fDue','fNote'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('fA').value = 'АА';
-  document.getElementById('fP').value = 'med';
-  document.getElementById('fS').value = tab === 'done' ? 'done' : 'progress';
-  document.getElementById('deleteBtn').style.display = 'none';
+function openAdd(){
+  editId=null;
+  document.getElementById('mdTitle').textContent='Новая задача';
+  ['fT','fD','fDue','fNote'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fProj').value = proj || 'STRIZH';
+  document.getElementById('fA').value='АА';
+  document.getElementById('fP').value='med';
+  document.getElementById('fS').value = (tab==='done'?'done':tab==='progress'?'progress':'waiting');
+  document.getElementById('deleteBtn').style.display='none';
   document.getElementById('fT').classList.remove('err');
   document.getElementById('ov').classList.add('open');
-  setTimeout(() => document.getElementById('fT').focus(), 100);
+  setTimeout(()=>document.getElementById('fT').focus(),100);
 }
 
-function openEdit(id) {
-  const t = tasks.find(x => x.id === id);
-  if (!t) return;
-  editId = id;
-  document.getElementById('mdTitle').textContent = 'Редактировать';
-  document.getElementById('fT').value = t.title;
-  document.getElementById('fD').value = t.desc || '';
-  document.getElementById('fA').value = t.assignee;
-  document.getElementById('fP').value = t.prio;
-  document.getElementById('fDue').value = t.due || '';
-  document.getElementById('fS').value = t.status;
-  document.getElementById('fNote').value = t.note || '';
-  document.getElementById('deleteBtn').style.display = 'block';
+function openEdit(id){
+  const t=tasks.find(x=>x.id===id);if(!t)return;
+  editId=id;
+  document.getElementById('mdTitle').textContent='Редактировать';
+  document.getElementById('fT').value=t.title;
+  document.getElementById('fD').value=t.desc||'';
+  document.getElementById('fProj').value=t.project||'STRIZH';
+  document.getElementById('fA').value=t.assignee;
+  document.getElementById('fP').value=t.prio;
+  document.getElementById('fDue').value=t.due||'';
+  document.getElementById('fS').value=t.status||'progress';
+  document.getElementById('fNote').value=t.note||'';
+  document.getElementById('deleteBtn').style.display='block';
   document.getElementById('fT').classList.remove('err');
   document.getElementById('ov').classList.add('open');
 }
 
-function closeOv() {
-  document.getElementById('ov').classList.remove('open');
-}
+function closeOv(){document.getElementById('ov').classList.remove('open');}
 
-// ─── СОБЫТИЯ ───────────────────────────────────────────────────────
-document.getElementById('openAdd').addEventListener('click', openAdd);
-document.getElementById('closeOv').addEventListener('click', closeOv);
-document.getElementById('ov').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeOv();
-});
+document.getElementById('openAdd').addEventListener('click',openAdd);
+document.getElementById('closeOv').addEventListener('click',closeOv);
+document.getElementById('ov').addEventListener('click',e=>{if(e.target===e.currentTarget)closeOv();});
 
-document.getElementById('submitBtn').addEventListener('click', async () => {
-  const title = document.getElementById('fT').value.trim();
-  if (!title) {
-    document.getElementById('fT').classList.add('err');
-    document.getElementById('fT').focus();
-    return;
-  }
+document.getElementById('submitBtn').addEventListener('click',async()=>{
+  const title=document.getElementById('fT').value.trim();
+  if(!title){document.getElementById('fT').classList.add('err');document.getElementById('fT').focus();return;}
   document.getElementById('fT').classList.remove('err');
-  const t = {
-    id: editId || Date.now(),
+  const t={
+    id:editId||Date.now(),
     title,
-    desc: document.getElementById('fD').value,
-    assignee: document.getElementById('fA').value,
-    prio: document.getElementById('fP').value,
-    due: document.getElementById('fDue').value,
-    status: document.getElementById('fS').value,
-    note: document.getElementById('fNote').value
+    desc:document.getElementById('fD').value,
+    project:document.getElementById('fProj').value,
+    assignee:document.getElementById('fA').value,
+    prio:document.getElementById('fP').value,
+    due:document.getElementById('fDue').value,
+    status:document.getElementById('fS').value,
+    note:document.getElementById('fNote').value
   };
   closeOv();
   await saveTask(t);
 });
 
-document.getElementById('deleteBtn').addEventListener('click', async () => {
-  if (!editId) return;
-  closeOv();
-  await deleteTask(editId);
+document.getElementById('deleteBtn').addEventListener('click',async()=>{
+  if(!editId)return;closeOv();await deleteTask(editId);
 });
 
-document.getElementById('tabsEl').addEventListener('click', e => {
-  const b = e.target.closest('.tab');
-  if (!b) return;
-  tab = b.dataset.tab;
-  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b));
+document.getElementById('projSwitch').addEventListener('click',e=>{
+  const b=e.target.closest('.ps');if(!b)return;
+  proj=b.dataset.p;
+  document.querySelectorAll('.ps').forEach(x=>x.classList.toggle('on',x===b));
   render();
 });
 
-document.getElementById('fltG').addEventListener('click', e => {
-  const b = e.target.closest('.fb');
-  if (!b) return;
-  flt = b.dataset.f;
-  document.querySelectorAll('.fb').forEach(x => x.classList.toggle('on', x === b));
+document.getElementById('tabsEl').addEventListener('click',e=>{
+  const b=e.target.closest('.tab');if(!b)return;
+  tab=b.dataset.tab;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
   render();
 });
 
-document.getElementById('meSelect').addEventListener('change', e => {
-  me = e.target.value;
+document.getElementById('fltG').addEventListener('click',e=>{
+  const b=e.target.closest('.fb');if(!b)return;
+  flt=b.dataset.f;
+  document.querySelectorAll('.fb').forEach(x=>x.classList.toggle('on',x===b));
   render();
 });
+
+document.getElementById('meSelect').addEventListener('change',e=>{me=e.target.value;render();});
+document.getElementById('sortSel').addEventListener('change',e=>{sortBy=e.target.value;render();});
+document.getElementById('searchInp').addEventListener('input',e=>{search=e.target.value;render();});
 </script>
 </body>
 </html>
