@@ -128,6 +128,9 @@
     .due-sn{color:var(--am)!important;font-weight:500}
     .cnote{font-size:var(--fs-xs);color:#999;margin-top:6px;padding-top:6px;border-top:.5px solid #f0f0f0;
       line-height:1.5;font-family:'Roboto',Arial,sans-serif}
+    .done-badge{display:inline-flex;align-items:center;gap:4px;margin-top:7px;
+      font-size:var(--fs-xs);font-weight:500;color:var(--sgd);background:var(--sgl);
+      padding:3px 9px;border-radius:20px;font-family:'Roboto',Arial,sans-serif}
     .done-card .ctitle{text-decoration:line-through;color:#aaa}
 
     .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center}
@@ -436,6 +439,7 @@ function render(){
     const dc=dcls(t.due,t.status);
     const di=dc==='due-ov'?'ti-calendar-x':'ti-calendar';
     const nn=t.note?`<div class="cnote">${escHtml(t.note)}</div>`:'';
+    const doneBadge=(t.status==='done'&&t.completedAt)?`<div class="done-badge">✓ Выполнено ${fmt(t.completedAt)}</div>`:'';
     const pc=projClass(t.project);
     return `<div class="card${t.status==='done'?' done-card':''}" data-id="${t.id}">
       <div class="card-stripe stripe-${pc}"></div>
@@ -452,6 +456,7 @@ function render(){
         ${t.due?`<div class="due ${dc}"><i class="ti ${di}" style="font-size:10px"></i>${fmt(t.due)}</div>`:''}
       </div>
       ${nn}
+      ${doneBadge}
     </div>`;
   }).join('');
 
@@ -512,7 +517,8 @@ document.getElementById('submitBtn').addEventListener('click',async()=>{
     prio:document.getElementById('fP').value,
     due:document.getElementById('fDue').value,
     status:newStatus,
-    note:document.getElementById('fNote').value
+    note:document.getElementById('fNote').value,
+    completedAt: (newStatus==='done' && !wasDone) ? new Date().toISOString().split('T')[0] : (prev&&prev.completedAt||'')
   };
   closeOv();
   await saveTask(t);
