@@ -84,6 +84,34 @@
       background:var(--bk);color:#fff;border:none;border-radius:7px;cursor:pointer;white-space:nowrap;
       font-family:'Roboto',Arial,sans-serif;transition:background .15s}
     .ab:hover{background:var(--sg)}
+    .ideas-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;flex-shrink:0;
+      background:#fff;color:var(--am);border:.5px solid #e0e0e0;border-radius:8px;cursor:pointer;
+      font-size:17px;transition:all .15s}
+    .ideas-btn:hover{border-color:var(--am);background:#fffbeb}
+
+    /* ПАНЕЛЬ ИДЕЙ */
+    .ideas-card{background:#fff;border-radius:16px 16px 0 0;padding:18px 16px 28px;width:100%;
+      max-width:520px;max-height:88vh;display:flex;flex-direction:column}
+    .ideas-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+    .ideas-head svg,.ideas-head i{color:var(--am);flex-shrink:0}
+    .ideas-head .it{font-size:clamp(14px,3vw,16px);font-weight:600;color:#111;flex:1;font-family:'Roboto',Arial,sans-serif}
+    .ideas-sub{font-size:var(--fs-xs);color:#999;margin-bottom:14px;font-family:'Roboto',Arial,sans-serif}
+    .ideas-input-row{display:flex;gap:7px;margin-bottom:14px}
+    .ideas-input{flex:1;padding:9px 11px;border-radius:9px;border:.5px solid #e0e0e0;background:#fafafa;
+      font-size:var(--fs-sm);font-family:'Roboto',Arial,sans-serif;outline:none}
+    .ideas-input:focus{border-color:var(--am);background:#fff}
+    .ideas-add{background:var(--am);color:#fff;border:none;border-radius:9px;padding:0 16px;font-size:18px;
+      cursor:pointer;flex-shrink:0;transition:background .15s}
+    .ideas-add:hover{background:#d97706}
+    .ideas-list{overflow-y:auto;display:flex;flex-direction:column;gap:8px;flex:1}
+    .ideas-empty{text-align:center;color:#bbb;font-size:var(--fs-sm);padding:30px 0;font-family:'Roboto',Arial,sans-serif}
+    .idea-item{background:#fffbeb;border:.5px solid #fde68a;border-radius:10px;padding:10px 12px;
+      display:flex;align-items:flex-start;gap:8px}
+    .idea-body{flex:1;min-width:0}
+    .idea-text{font-size:var(--fs-card);color:#222;line-height:1.4;word-wrap:break-word;font-family:'Roboto',Arial,sans-serif}
+    .idea-meta{font-size:9px;color:#b08900;margin-top:5px;font-family:'Roboto',Arial,sans-serif}
+    .idea-del{background:none;border:none;color:#ccc;cursor:pointer;font-size:16px;padding:2px;flex-shrink:0;transition:color .15s}
+    .idea-del:hover{color:var(--rd)}
 
     .toolbar2{padding:10px var(--pad) 8px;display:flex;flex-direction:column;gap:7px;background:#fff;border-bottom:.5px solid #f0f0f0}
     .flt{display:flex;gap:5px;flex-wrap:wrap}
@@ -214,6 +242,7 @@
     <i class="ti ti-search"></i>
     <input class="search-inp" id="searchInp" placeholder="Поиск по задачам..." autocomplete="off"/>
   </div>
+  <button class="ideas-btn" id="openIdeas" title="Идеи и задачи на будущее"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1v.2h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg></button>
   <button class="ab" id="openAdd"><i class="ti ti-plus"></i> Задача</button>
 </div>
 
@@ -305,6 +334,23 @@
   </div>
 </div>
 
+<!-- ПАНЕЛЬ ИДЕЙ «ДЛЯ ИНФО» -->
+<div class="ov" id="ideasOv">
+  <div class="ideas-card">
+    <div class="ideas-head">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1v.2h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>
+      <span class="it">Для инфо</span>
+      <button class="xb" id="closeIdeas"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="ideas-sub">Идеи и задачи на будущее — общая копилка команды</div>
+    <div class="ideas-input-row">
+      <input class="ideas-input" id="ideaInp" placeholder="Записать идею..." autocomplete="off"/>
+      <button class="ideas-add" id="ideaAdd"><i class="ti ti-plus"></i></button>
+    </div>
+    <div class="ideas-list" id="ideasList"></div>
+  </div>
+</div>
+
 <!-- ОКНО ПОЗДРАВЛЕНИЯ -->
 <div class="celebrate-ov" id="celebrateOv">
   <canvas id="confettiCanvas"></canvas>
@@ -331,6 +377,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const tasksRef = db.ref('strizh_tasks');
+const ideasRef = db.ref('strizh_ideas');
 
 if (window.Telegram && window.Telegram.WebApp) {
   window.Telegram.WebApp.ready();
@@ -577,6 +624,56 @@ document.getElementById('whoami').addEventListener('click',()=>{
 });
 
 renderWhoami();
+
+// ─── ИДЕИ «ДЛЯ ИНФО» ───────────────────────────────────────────────
+let ideas = [];
+
+ideasRef.on('value',(snap)=>{
+  const data=snap.val();
+  ideas=data?Object.values(data):[];
+  ideas.sort((a,b)=>(b.id||0)-(a.id||0));
+  renderIdeas();
+});
+
+function renderIdeas(){
+  const el=document.getElementById('ideasList');
+  if(!ideas.length){el.innerHTML='<div class="ideas-empty">Пока пусто.<br>Запишите первую идею 💡</div>';return;}
+  el.innerHTML=ideas.map(it=>{
+    const who=it.author?(ANN[it.author]||it.author):'';
+    const meta=[who,it.date?fmt(it.date):''].filter(Boolean).join(' · ');
+    return `<div class="idea-item">
+      <div class="idea-body">
+        <div class="idea-text">${escHtml(it.text)}</div>
+        ${meta?`<div class="idea-meta">${meta}</div>`:''}
+      </div>
+      <button class="idea-del" data-id="${it.id}"><i class="ti ti-trash"></i></button>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.idea-del').forEach(b=>b.addEventListener('click',async()=>{
+    try{await ideasRef.child(String(b.dataset.id)).remove();}catch(e){}
+  }));
+}
+
+async function addIdea(){
+  const inp=document.getElementById('ideaInp');
+  const text=inp.value.trim();
+  if(!text)return;
+  const it={id:Date.now(),text,author:currentUser||'',date:new Date().toISOString().split('T')[0]};
+  inp.value='';
+  try{await ideasRef.child(String(it.id)).set(it);}catch(e){showToast('⚠️ Ошибка');}
+}
+
+document.getElementById('openIdeas').addEventListener('click',()=>{
+  document.getElementById('ideasOv').classList.add('open');
+});
+document.getElementById('closeIdeas').addEventListener('click',()=>{
+  document.getElementById('ideasOv').classList.remove('open');
+});
+document.getElementById('ideasOv').addEventListener('click',e=>{
+  if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');
+});
+document.getElementById('ideaAdd').addEventListener('click',addIdea);
+document.getElementById('ideaInp').addEventListener('keydown',e=>{if(e.key==='Enter')addIdea();});
 
 // ─── САЛЮТ / КОНФЕТТИ ──────────────────────────────────────────────
 function celebrate(){
